@@ -6,12 +6,16 @@ import click
 from flask import Flask, render_template
 
 from betterme.blueprints.main import main_bp
-from betterme.extensions import bootstrap, db, mail, moment
-from betterme.settings import config
+from betterme.blueprints.user import user_bp
+from betterme.blueprints.auth import auth_bp
+from betterme.extensions import bootstrap, db, mail, moment, login_manager
+from betterme.configs import config
+from betterme.models import User
+
 
 def create_app(config_name=None):
     if config_name is None:
-        config_name = os.getenv('FLASK_CONFIG', development)
+        config_name = os.getenv('FLASK_CONFIG', 'development')
 
     app = Flask('betterme')
 
@@ -26,22 +30,30 @@ def create_app(config_name=None):
 
     return app
 
+
 def register_extensions(app):
     bootstrap.init_app(app)
     db.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
+    login_manager.init_app(app)
+
 
 def register_bluprints(app):
     app.register_blueprint(main_bp)
+    app.register_blueprint(user_bp, url_prefix='/user')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
 
 def register_shell_context(app):
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db)
+        return dict(db=db, User=User)
+
 
 def register_template_context(app):
     pass
+
 
 def register_errorhandlers(app):
     @app.errorhandler(400)
@@ -64,16 +76,18 @@ def register_errorhandlers(app):
     def internal_server_error(e):
         return render_template('errors/500.html'), 500
 
+
 def register_commands(app):
     @app.cli.command()
     @click.option('--drop', is_flag=True, help='Drop and create new database')
     def initdb(drop):
         if drop:
-            click.confirm('This operation will delete the database, do you want to continue?', abort=True)
+            click.confirm(
+                'This operation will delete the database, do you want to continue?', abort=True)
             db.drop_all()
             click.echo('Drop database')
         db.create_all()
-        click.echo(Create new database)
+        click.echo('Create new database')
 
     @app.cli.command()
     def init():
@@ -82,6 +96,14 @@ def register_commands(app):
         click.echo('Done.')
 
     @app.cli.command()
-    def forge():
-
+    @click.option('--user', default=10, help='Number of user')
+    def forge(user):
+        from betterme.fakes import fake_admin, fake_user
+        db.drop_all()
+        db.create_all()
+        click.echo('Generating the administrator...')
+        fake_admin()
+        click.echo('Generating %d users...' % user)
+        fake_user(user)
+        click.echo('Done.')
         pass

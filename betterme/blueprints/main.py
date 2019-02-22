@@ -8,6 +8,6 @@ main_bp = Blueprint('main', __name__)
 def index():
     return render_template('main/index.html')
 
-@main_bp.route('explore')
+@main_bp.route('/explore')
 def explore():
     return render_template('main/explore.html')
