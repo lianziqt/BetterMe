@@ -4,7 +4,7 @@ from faker import Faker
 from sqlalchemy.exc import IntegrityError
 
 from betterme.extensions import db
-from betterme.models import User
+from betterme.models import User, Role
 
 fake = Faker()
 
@@ -33,7 +33,9 @@ def fake_user(count=10):
                     email=fake.email())
         user.set_password('123456')
         db.session.add(user)
+    
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
+        

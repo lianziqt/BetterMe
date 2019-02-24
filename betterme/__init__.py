@@ -10,7 +10,7 @@ from betterme.blueprints.user import user_bp
 from betterme.blueprints.auth import auth_bp
 from betterme.extensions import bootstrap, db, mail, moment, login_manager
 from betterme.configs import config
-from betterme.models import User
+from betterme.models import User, Role
 
 
 def create_app(config_name=None):
@@ -93,6 +93,7 @@ def register_commands(app):
     def init():
         click.echo('Initializing the database...')
         db.create_all()
+        Role.init_role()
         click.echo('Done.')
 
     @app.cli.command()
@@ -105,5 +106,6 @@ def register_commands(app):
         fake_admin()
         click.echo('Generating %d users...' % user)
         fake_user(user)
+        Role.init_role()
         click.echo('Done.')
         pass

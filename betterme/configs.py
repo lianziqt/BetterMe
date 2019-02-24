@@ -26,7 +26,7 @@ class BaseConfig:
     SEARCH_RESULT_PER_PAGE = 20
     MAX_CONTENT_LENGTH = 3 * 1024 * 1024  # file size exceed to 3 Mb will return a 413 error response.
 
-    ADMIN_EMAIL = os.getenv('BM_ADMIN','myh0031@163.com')
+    ADMIN_EMAIL = os.getenv('BM_ADMIN','659733166@qq.com')
     MAIL_SUBJECT_PREFIX = '[BetterMe]'
     MAIL_SERVER = os.getenv('MAIL_SERVER')
     MAIL_PORT = 465

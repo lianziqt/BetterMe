@@ -2,10 +2,15 @@
 
 from betterme.extensions import db
 
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from flask import current_app
 from datetime import datetime
+
+roles_permissions = db.Table('roles_permissions', 
+                    db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
+                    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')),
+                )
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,7 +25,77 @@ class User(db.Model, UserMixin):
 
     confirmed = db.Column(db.Boolean, default=False)
 
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+    role = db.relationship('Role', back_populates='users')
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        self.set_role()
+
+    def set_role(self):
+        if self.role is  None:
+            if self.email == current_app.config['ADMIN_EMAIL']:
+                self.role = Role.query.filter_by(name='Administrator').first()
+            else:
+                self.role = Role.query.filter_by(name='User').first()
+            db.session.commit()
+
+    @property
+    def admin(self):
+        return self.role.name == 'Administrator'
+    
+    def can(self, permission_name):
+        permission = Permission.query.filter_by(name=permission_name).first()
+        return permission is not None and self.role is not None and permission in self.role.permissions
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), unique=True)
+    permissions = db.relationship('Permission', secondary=roles_permissions, back_populates='roles')
+    users = db.relationship('User', back_populates='role')
+
+    @staticmethod
+    def init_role():
+        roles_permission_map={
+            'Locked': ['FOLLOW', 'COLLECT'],
+            'User': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD'],
+            'Moderator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE'],
+            'Administrator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE', 'ADMINISTER']
+        }
+        for role_name in roles_permission_map:
+            role = Role.query.filter_by(name=role_name).first()
+            if role is None:
+                role = Role(name=role_name)
+                db.session.add(role)
+            role.permissions = []
+            for permission_name in roles_permission_map[role_name]:
+                permission = Permission.query.filter_by(name=permission_name).first()
+                if permission is None:
+                    permission = Permission(name=permission_name)
+                    db.session.add(permission)
+                role.permissions.append(permission)
+        db.session.commit()
+
+    @staticmethod
+    def init_role_permission():
+        for user in User.query.all():
+            if user.role is None:
+                if user.email == current_user.config['ADMIN_EMAIL']:
+                    user.role = Role.query.filter_by(name='Administrator').first()
+                else:
+                    user.role = Role.query.filter_by(name='User').first()
+            db.session.add(user)
+        db.session.commit()
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), unique=True)
+    roles = db.relationship('Role', secondary=roles_permissions, back_populates='permissions')
+
+
+
