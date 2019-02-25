@@ -4,7 +4,11 @@ try:
     from urlparse import urlparse, urljoin
 except ImportError:
     from urllib.parse import urlparse, urljoin
-
+import os
+import uuid
+import PIL
+from PIL import Image
+from flask_login import current_user
 from flask import request, url_for, redirect, flash, current_app
 from itsdangerous import BadSignature, SignatureExpired
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -74,3 +78,21 @@ def flash_errors(form):
                 getattr(form, field).label.text,
                 error
             ))
+
+def rename_image(oldname):
+    ext = os.path.splitext(oldname)[1]
+    newname = uuid.uuid4().hex + ext
+    return newname
+
+def resize_image(image, filename, base_width):
+    filename, ext = os.path.splitext(filename)
+    img = Image.open(image)
+    if img.size[0] <= base_width:
+        return filename + ext
+    w_percent = (base_width / float(img.size[0]))
+    h_size = int((float(img.size[1]) * float(w_percent)))
+    img = img.resize((base_width, h_size), PIL.Image.ANTIALIAS)
+
+    filename += current_app.config['PHOTO_SUFFIX'][base_width] + ext
+    img.save(os.path.join(current_app.config['UPLOAD_PATH'], current_user.name, filename), optimize=True, quality=85)
+    return filename

@@ -31,6 +31,7 @@
                 <div class="navbar-nav mr-auto">
                     {{ render_nav_item('main.index', 'Home') }}
                     {{ render_nav_item('main.explore', 'Explore') }}
+                    
                     <form class="form-inline my-2 my-lg-0">
                         <input type="search" name="q" class="form-control mr-sm-1" placeholder="Photo, tag or user"
                                required>
@@ -40,7 +41,9 @@
                     </form>
                 </div>
                 <div class="navbar-nav ml-auto">
+                {{ render_nav_item('main.upload', 'Upload') }}
                 {% if current_user.is_authenticated %}
+                <img src="{{ url_for('main.get_avatar', filename=current_user.small_avatar) }}">
                 <div class="dropdown nav-item">
                     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
                        aria-expanded="false">

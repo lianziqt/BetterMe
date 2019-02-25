@@ -6,6 +6,7 @@ from flask_login import UserMixin, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 from datetime import datetime
+from flask_avatars import Identicon
 
 roles_permissions = db.Table('roles_permissions', 
                     db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
@@ -23,10 +24,17 @@ class User(db.Model, UserMixin):
     location = db.Column(db.String(120))
     member_since = db.Column(db.DateTime, default=datetime.utcnow)
 
+    large_avatar = db.Column(db.String(64))
+    medium_avatar = db.Column(db.String(64))
+    small_avatar = db.Column(db.String(64))
+
     confirmed = db.Column(db.Boolean, default=False)
 
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     role = db.relationship('Role', back_populates='users')
+
+    posts = db.relationship('Post', back_populates='user')
+    photos = db.relationship('Photo', back_populates='user')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -36,6 +44,7 @@ class User(db.Model, UserMixin):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         self.set_role()
+        self.generate_avatar()
 
     def set_role(self):
         if self.role is  None:
@@ -44,6 +53,14 @@ class User(db.Model, UserMixin):
             else:
                 self.role = Role.query.filter_by(name='User').first()
             db.session.commit()
+    
+    def generate_avatar(self):
+        identicon = Identicon()
+        filename = identicon.generate(text=self.email)
+        self.large_avatar = filename[2]
+        self.medium_avatar = filename[1]
+        self.small_avatar = filename[0]
+        db.session.commit()
 
     @property
     def admin(self):
@@ -97,5 +114,28 @@ class Permission(db.Model):
     name = db.Column(db.String(20), unique=True)
     roles = db.relationship('Role', secondary=roles_permissions, back_populates='permissions')
 
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String(144))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    can_comment = db.Column(db.Boolean, default=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', back_populates='posts')
+
+    photos = db.relationship('Photo', back_populates='post', cascade='all')
+
+class Photo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(64), unique=True, index=True)
+    s_filename = db.Column(db.String(66))
+    m_filename = db.Column(db.String(66))
+    connected = db.Column(db.Boolean, default=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', back_populates='photos')
+
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    post = db.relationship('Post', back_populates='photos')
 
 

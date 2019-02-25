@@ -8,9 +8,9 @@ from flask import Flask, render_template
 from betterme.blueprints.main import main_bp
 from betterme.blueprints.user import user_bp
 from betterme.blueprints.auth import auth_bp
-from betterme.extensions import bootstrap, db, mail, moment, login_manager
+from betterme.extensions import bootstrap, db, mail, moment, login_manager, dropzone, csrfprotect, avatars
 from betterme.configs import config
-from betterme.models import User, Role
+from betterme.models import User, Role, Post, Photo
 
 
 def create_app(config_name=None):
@@ -37,6 +37,9 @@ def register_extensions(app):
     mail.init_app(app)
     moment.init_app(app)
     login_manager.init_app(app)
+    dropzone.init_app(app)
+    csrfprotect.init_app(app)
+    avatars.init_app(app)
 
 
 def register_bluprints(app):
@@ -48,7 +51,7 @@ def register_bluprints(app):
 def register_shell_context(app):
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db, User=User)
+        return dict(db=db, User=User, Post=Post, Photo=Photo)
 
 
 def register_template_context(app):
@@ -102,10 +105,11 @@ def register_commands(app):
         from betterme.fakes import fake_admin, fake_user
         db.drop_all()
         db.create_all()
+        Role.init_role()
         click.echo('Generating the administrator...')
         fake_admin()
         click.echo('Generating %d users...' % user)
         fake_user(user)
-        Role.init_role()
+        
         click.echo('Done.')
         pass
