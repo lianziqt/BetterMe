@@ -101,8 +101,9 @@ def register_commands(app):
 
     @app.cli.command()
     @click.option('--user', default=10, help='Number of user')
-    def forge(user):
-        from betterme.fakes import fake_admin, fake_user
+    @click.option('--post', default=30, help='Number of post')
+    def forge(user, post):
+        from betterme.fakes import fake_admin, fake_user, fake_post
         db.drop_all()
         db.create_all()
         Role.init_role()
@@ -110,6 +111,6 @@ def register_commands(app):
         fake_admin()
         click.echo('Generating %d users...' % user)
         fake_user(user)
-        
+        fake_post(post)
         click.echo('Done.')
         pass

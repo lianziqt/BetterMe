@@ -1,0 +1,15 @@
+{% macro post_card(post, user, moment) %}
+
+<div class="card">
+    {% if post.photos %}
+    <img src="{{ url_for('main.get_first_image', post_id=post.id) }}" class="card-img-top" >
+    {% endif %}
+    <div class="card-body">
+        <p class="card-text">{{ post.body }}</p>
+    </div>
+    <div class="card-footer">
+        <small class="text-muted">at {{ moment(user.member_since).format('LL') }}</small>
+    </div>
+</div>
+
+{% endmacro %}

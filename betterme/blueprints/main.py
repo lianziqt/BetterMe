@@ -27,6 +27,22 @@ def explore():
 def get_avatar(filename):
     return send_from_directory(current_app.config['AVATARS_SAVE_PATH'], filename)
 
+@main_bp.route('/uploads/images/<path:filename>')
+def get_image(filename):
+    user_path = os.path.join(current_app.config['UPLOAD_PATH'], current_user.name)
+    return send_from_directory(user_path, filename)
+
+@main_bp.route('/get/<int:post_id>')
+def get_first_image(post_id):
+    post = Post.query.filter_by(id=post_id).first()
+    print(1)
+    photos = post.photos
+    filename = photos[0].m_filename
+    print(filename)
+    user_path = os.path.join(current_app.config['UPLOAD_PATH'], current_user.name)
+    print(user_path)
+    return send_from_directory(user_path, filename)
+
 
 @main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -37,8 +53,6 @@ def upload():
 
     if request.method == 'POST' and 'file' in request.files:
         f = request.files['file']
-        if f.filename.split('.')[1] != 'png':
-            return 'PNG only!', 400
         filename = rename_image(f.filename)
         path = os.path.join(current_app.config['UPLOAD_PATH'], current_user.name)
         if not os.path.exists(path):
