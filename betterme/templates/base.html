@@ -43,7 +43,7 @@
                 <div class="navbar-nav ml-auto">
                 {{ render_nav_item('main.upload', 'Upload') }}
                 {% if current_user.is_authenticated %}
-                <img src="{{ url_for('main.get_avatar', filename=current_user.small_avatar) }}">
+                <img src="{{ url_for('main.get_avatar', filename=current_user.s_avatar) }}">
                 <div class="dropdown nav-item">
                     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
                        aria-expanded="false">
@@ -94,7 +94,8 @@
                 </footer>
             {% endblock %}
         </div>
-    
+</main>
+<div id="toast"></div>
 {% block scripts %}
         <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>

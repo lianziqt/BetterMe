@@ -8,6 +8,7 @@ from flask import Flask, render_template
 from betterme.blueprints.main import main_bp
 from betterme.blueprints.user import user_bp
 from betterme.blueprints.auth import auth_bp
+from betterme.blueprints.ajax import ajax_bp
 from betterme.extensions import bootstrap, db, mail, moment, login_manager, dropzone, csrfprotect, avatars
 from betterme.configs import config
 from betterme.models import User, Role, Post, Photo
@@ -46,6 +47,7 @@ def register_bluprints(app):
     app.register_blueprint(main_bp)
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(ajax_bp, url_prefix='/ajax')
 
 
 def register_shell_context(app):
@@ -102,8 +104,10 @@ def register_commands(app):
     @app.cli.command()
     @click.option('--user', default=10, help='Number of user')
     @click.option('--post', default=30, help='Number of post')
-    def forge(user, post):
-        from betterme.fakes import fake_admin, fake_user, fake_post
+    @click.option('--tag', default=20, help='Quantity of tags, default is 500.')
+    @click.option('--comment', default=100, help='Quantity of comments, default is 500.')
+    def forge(user, post, tag, comment):
+        from betterme.fakes import fake_admin, fake_user, fake_post, fake_post, fake_tag, fake_comment
         db.drop_all()
         db.create_all()
         Role.init_role()
@@ -111,6 +115,12 @@ def register_commands(app):
         fake_admin()
         click.echo('Generating %d users...' % user)
         fake_user(user)
+        click.echo('Generating the tag...')
+        fake_tag(tag)
+        click.echo('Generating the post...')
         fake_post(post)
+        click.echo('Generating the comment...')
+        fake_comment(comment)
         click.echo('Done.')
         pass
+

@@ -96,3 +96,11 @@ def resize_image(image, filename, base_width):
     filename += current_app.config['PHOTO_SUFFIX'][base_width] + ext
     img.save(os.path.join(current_app.config['UPLOAD_PATH'], current_user.name, filename), optimize=True, quality=85)
     return filename
+
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(u"Error in the %s field - %s" % (
+                getattr(form, field).label.text,
+                error
+            ))

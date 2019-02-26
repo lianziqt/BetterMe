@@ -1,15 +1,36 @@
 {% macro post_card(post, user, moment) %}
-
+<a  href="{{ url_for('main.show_post', post_id=post.id) }}">
 <div class="card">
     {% if post.photos %}
     <img src="{{ url_for('main.get_first_image', post_id=post.id) }}" class="card-img-top" >
     {% endif %}
     <div class="card-body">
         <p class="card-text">{{ post.body }}</p>
+        <hr>
+        <small><span class="oi oi-comment-square"></span> {{ post.comments|length }}</small>
     </div>
     <div class="card-footer">
         <small class="text-muted">at {{ moment(user.member_since).format('LL') }}</small>
     </div>
 </div>
+</a>
 
+{% endmacro %}
+
+{% macro show_post_photos(photos) %}
+    {% for photo in photos %}
+    {% if loop.index % 3 == 1 %}
+        <div class="row">
+    {% endif %}
+    <div class="col-sm-4">
+        <div class="card">
+            <a href="{{ url_for('main.get_image', filename=photo.filename, user_id=photo.user.id) }}" target="_blank">
+                <img class="card-img-top" src="{{ url_for('main.get_image', filename=photo.m_filename, user_id=photo.user.id) }}">
+            </a>
+        </div>
+    </div>
+    {% if loop.index % 3 == 0 or loop.last %}
+    </div>
+    {% endif %}
+    {% endfor %}
 {% endmacro %}

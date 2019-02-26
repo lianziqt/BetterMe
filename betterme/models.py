@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import os
 from betterme.extensions import db
 
 from flask_login import UserMixin, current_user
@@ -13,6 +13,12 @@ roles_permissions = db.Table('roles_permissions',
                     db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')),
                 )
 
+tagging = db.Table('tagging',
+                   db.Column('post_id', db.Integer, db.ForeignKey('post.id')),
+                   db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'))
+                   )
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, index=True)
@@ -24,9 +30,9 @@ class User(db.Model, UserMixin):
     location = db.Column(db.String(120))
     member_since = db.Column(db.DateTime, default=datetime.utcnow)
 
-    large_avatar = db.Column(db.String(64))
-    medium_avatar = db.Column(db.String(64))
-    small_avatar = db.Column(db.String(64))
+    l_avatar = db.Column(db.String(64))
+    m_avatar = db.Column(db.String(64))
+    s_avatar = db.Column(db.String(64))
 
     confirmed = db.Column(db.Boolean, default=False)
 
@@ -35,6 +41,8 @@ class User(db.Model, UserMixin):
 
     posts = db.relationship('Post', back_populates='user')
     photos = db.relationship('Photo', back_populates='user')
+
+    comments = db.relationship('Comment', back_populates='user')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -57,9 +65,9 @@ class User(db.Model, UserMixin):
     def generate_avatar(self):
         identicon = Identicon()
         filename = identicon.generate(text=self.email)
-        self.large_avatar = filename[2]
-        self.medium_avatar = filename[1]
-        self.small_avatar = filename[0]
+        self.l_avatar = filename[2]
+        self.m_avatar = filename[1]
+        self.s_avatar = filename[0]
         db.session.commit()
 
     @property
@@ -124,6 +132,15 @@ class Post(db.Model):
     user = db.relationship('User', back_populates='posts')
 
     photos = db.relationship('Photo', back_populates='post', cascade='all')
+    tags = db.relationship('Tag',secondary=tagging, back_populates='posts')
+    comments = db.relationship('Comment', back_populates='post', cascade='all')
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True, unique=True)
+
+    posts = db.relationship('Post', secondary=tagging, back_populates='tags')
+
 
 class Photo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -137,5 +154,28 @@ class Photo(db.Model):
 
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
     post = db.relationship('Post', back_populates='photos')
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String(144))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    flag = db.Column(db.Integer, default=0)
+
+    replied_id = db.Column(db.Integer, db.ForeignKey('comment.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    post = db.relationship('Post', back_populates='comments')
+    user = db.relationship('User', back_populates='comments')
+    replied = db.relationship('Comment', back_populates='replies', remote_side=[id])
+    replies = db.relationship('Comment', back_populates='replied', cascade='all')
+
+@db.event.listens_for(Photo, 'after_delete', named=True)
+def delete_photos(**kwargs):
+    target = kwargs['target']
+    for filename in [target.filename, target.s_filename, target.m_filename]:
+        user_path = os.path.join(current_app.config['UPLOAD_PATH'], current_user.name, filename)
+        if os.path.exists(user_path):  # not every filename map a unique file
+            os.remove(path)
 
 
