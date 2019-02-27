@@ -19,6 +19,7 @@ tagging = db.Table('tagging',
                    )
 
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, index=True)
@@ -43,6 +44,7 @@ class User(db.Model, UserMixin):
     photos = db.relationship('Photo', back_populates='user')
 
     comments = db.relationship('Comment', back_populates='user')
+    collections = db.relationship('Collect', back_populates='collector', cascade='all')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -69,6 +71,25 @@ class User(db.Model, UserMixin):
         self.m_avatar = filename[1]
         self.s_avatar = filename[0]
         db.session.commit()
+
+    def collect(self, post):
+        if not self.collection(post):
+            collect = Collect(collector=self, collected=post)
+            db.session.add(collect)
+            db.session.commit()
+
+    def uncollect(self, photo):
+        collect = Collect.query.with_parent(self).filter_by(collected_id=photo.id).first()
+        if collect:
+            db.session.delete(collect)
+            db.session.commit()
+
+
+    def collection(self, post):
+        c = Collect.query.with_parent(self).filter_by(collected_id=post.id).first()
+        if c is None:
+            return False
+        return True
 
     @property
     def admin(self):
@@ -134,6 +155,7 @@ class Post(db.Model):
     photos = db.relationship('Photo', back_populates='post', cascade='all')
     tags = db.relationship('Tag',secondary=tagging, back_populates='posts')
     comments = db.relationship('Comment', back_populates='post', cascade='all')
+    collectors = db.relationship('Collect', back_populates='collected', cascade='all')
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -178,4 +200,10 @@ def delete_photos(**kwargs):
         if os.path.exists(user_path):  # not every filename map a unique file
             os.remove(path)
 
+class Collect(db.Model):
+    collector_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    collected_id = db.Column(db.Integer, db.ForeignKey('post.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+    collector = db.relationship('User', back_populates='collections', lazy='joined')
+    collected = db.relationship('Post', back_populates='collectors', lazy='joined')

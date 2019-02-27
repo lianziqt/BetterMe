@@ -8,6 +8,9 @@
         <p class="card-text">{{ post.body }}</p>
         <hr>
         <small><span class="oi oi-comment-square"></span> {{ post.comments|length }}</small>
+        {% if post.collectors %}
+        <small><span class="oi oi-heart"></span> {{ post.collectors|length }} </small>
+        {% endif %}
     </div>
     <div class="card-footer">
         <small class="text-muted">at {{ moment(user.member_since).format('LL') }}</small>
@@ -33,4 +36,17 @@
     </div>
     {% endif %}
     {% endfor %}
+{% endmacro %}
+
+{% macro user_card(user) %}
+    <div class="card text-center">
+        <a href="{{ url_for('user.index', username=user.username) }}">
+            <img class="rounded avatar-m" src="{{ url_for('main.get_avatar', filename=user.m_avatar) }}">
+        </a>
+        <div class="card-body">
+        <h6>
+            <a href="{{ url_for('user.index', username=user.username) }}">{{ user.name }}</a>
+        </h6>
+        </div>
+    </div>
 {% endmacro %}

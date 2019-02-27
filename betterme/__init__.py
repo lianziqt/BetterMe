@@ -11,7 +11,7 @@ from betterme.blueprints.auth import auth_bp
 from betterme.blueprints.ajax import ajax_bp
 from betterme.extensions import bootstrap, db, mail, moment, login_manager, dropzone, csrfprotect, avatars
 from betterme.configs import config
-from betterme.models import User, Role, Post, Photo
+from betterme.models import User, Role, Post, Photo, Collect
 
 
 def create_app(config_name=None):
@@ -53,7 +53,7 @@ def register_bluprints(app):
 def register_shell_context(app):
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db, User=User, Post=Post, Photo=Photo)
+        return dict(db=db, User=User, Post=Post, Photo=Photo, Collect=Collect)
 
 
 def register_template_context(app):

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'macros.html' import post_card %}
+
+{% block title %}Collections{% endblock %}
+
+{% block content %}
+{% include 'user/_header.html' %}
+<div class="row">
+    <div class="col-md-12">
+        {% if collects %}
+        <div class="card-columns">
+            {% for collect in collects %}
+            {{ post_card(collect.collected, user, moment) }}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tip text-center">
+            <h3>No posts.</h3>
+            <a class="btn btn-link" href="{{ url_for('main.explore') }}">Explore</a>
+        </div>
+        {% endif %}
+
+{% if posts %}
+<div class="page-footer">
+    {{ render_pagination(pagination, align='right') }}
+</div>
+{% endif %}
+    </div>
+</div>
+{% endblock %}

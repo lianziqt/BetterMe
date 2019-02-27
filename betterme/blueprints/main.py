@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 
 from betterme.decorators import permission_required, confirm_required
 from betterme.forms.main import PostForm, TagForm, CommentForm
-from betterme.models import User, Post, Photo, Comment, Tag
+from betterme.models import User, Post, Photo, Comment, Tag, Collect
 from betterme.extensions import db
 from betterme.utils import rename_image, resize_image, flash_errors
 
@@ -40,7 +40,7 @@ def get_image(filename, user_id):
 @main_bp.route('/get/<int:post_id>')
 def get_first_image(post_id):
     post = Post.query.get_or_404(post_id)
-    
+
     photos = post.photos
 
     filename = photos[0].s_filename
@@ -262,6 +262,7 @@ def delete_comment(comment_id):
     flash('Comment deleted', 'info')
     return redirect(url_for('.show_post', post_id=comment.post_id))
 
+
 @main_bp.route('/tag/<int:tag_id>', defaults={'order': 'by_time'})
 @main_bp.route('/tag/<int:tag_id>/<order>')
 def show_tag(tag_id, order):
@@ -269,13 +270,15 @@ def show_tag(tag_id, order):
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['MANAGE_COMMENT_PER_PAGE']
     order_rule = 'time'
-    pagination = Post.query.with_parent(tag).order_by(Post.timestamp.desc()).paginate(page, per_page)
+    pagination = Post.query.with_parent(tag).order_by(
+        Post.timestamp.desc()).paginate(page, per_page)
     posts = pagination.items()
 
     if order == 'by_collects':
         posts.sort(key=lambda x: len(x.collectors), reverse=True)
         order_rule = 'collects'
     return render_template('main/tag.html', tag=tag, pagination=pagination, posts=posts, order_rule=order_rule)
+
 
 @main_bp.route('/delete/tag/<int:post_id>/<int:tag_id>', methods=['POST'])
 @login_required
@@ -293,3 +296,41 @@ def delete_tag(post_id, tag_id):
 
     flash('Tag deleted.', 'info')
     return redirect(url_for('.show_photo', photo_id=photo_id))
+
+
+@main_bp.route('/collect/<int:post_id>', methods=['POST'])
+@login_required
+@confirm_required
+@permission_required('COLLECT')
+def collect_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if current_user.collection(post):
+        flash('You have already collect this post.', 'info')
+        return redirect(url_for('.show_post', post_id=post_id))
+
+    current_user.collect(post)
+    flash('Collect post.', 'success')
+    return redirect(url_for('.show_post', post_id=post_id))
+
+
+@main_bp.route('/uncollect/<int:post_id>', methods=['POST'])
+@login_required
+def uncollect_post(post_id):
+    post=Post.query.get_or_404(post_id)
+    if not current_user.collection(post):
+        flash('Not collect this post.', 'info')
+        return redirect(url_for('.show_post', post_id=post_id))
+
+    current_user.uncollect(post)
+    flash('Uncollect post.', 'success')
+    return redirect(url_for('.show_post', post_id=post_id))
+
+@main_bp.route('/photo/<int:post_id>/collectors')
+def show_collectors(post_id):
+    post=Post.query.get_or_404(post_id)
+    page=request.args.get('page', 1, type=int)
+    per_page=current_app.config['USER_PER_PAGE']
+    pagination=Collect.query.with_parent(post).order_by(
+        Collect.timestamp.asc()).paginate(page, per_page)
+    collects=pagination.items
+    return render_template('main/collectors.html', collects=collects, post=post, pagination=pagination)
