@@ -1,4 +1,4 @@
-{% macro post_card(post, user, moment) %}
+{% macro post_card(post) %}
 <a  href="{{ url_for('main.show_post', post_id=post.id) }}">
 <div class="card">
     {% if post.photos %}
@@ -38,15 +38,47 @@
     {% endfor %}
 {% endmacro %}
 
+{% macro follow_button(user) %}
+    {% if current_user.is_authenticated %}
+        {% if user != current_user %}
+        <button data-id="{{ user.id }}"
+                data-href="{{ url_for('ajax.unfollow', username=user.username) }}"
+                class="{% if not current_user.is_follow(user) %}hide{% endif %} btn btn-dark btn-sm unfollow-btn">
+            Unfollow
+        </button>
+        <button data-id="{{ user.id }}"
+                data-href="{{ url_for('ajax.follow', username=user.username) }}"
+                class="{% if current_user.is_follow(user) %}hide{% endif %} btn btn-primary btn-sm follow-btn">
+            Follow
+        </button>
+        {% endif %}
+    {% else %}
+        <form class="inline" method="POST" action="{{ url_for('user.follow', username=user.username) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                Follow
+            </button>
+        </form>
+    {% endif %}
+{% endmacro %}
+
 {% macro user_card(user) %}
-    <div class="card text-center">
-        <a href="{{ url_for('user.index', username=user.username) }}">
-            <img class="rounded avatar-m" src="{{ url_for('main.get_avatar', filename=user.m_avatar) }}">
-        </a>
+<div class="card bg-light mb-3 w-100">
         <div class="card-body">
-        <h6>
-            <a href="{{ url_for('user.index', username=user.username) }}">{{ user.name }}</a>
-        </h6>
+            <div class="row">
+                <a href="{{ url_for('user.index', username=user.username) }}">
+                    <img class="sidebar-avatar rounded avatar-m"
+                         src="{{ url_for('main.get_avatar', filename=user.m_avatar) }}">
+                </a>
+                <div class="sidebar-profile">
+                    <h6 class="card-title">
+                        <a href="{{ url_for('user.index', username=user.username) }}">{{ user.name }}</a>
+                    </h6>
+                    <p class="card-subtitle mb-2 text-muted">{{ user.username }}</p>
+                    {{ follow_button(user) }}
+                </div>
+            </div>
         </div>
     </div>
 {% endmacro %}
+

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
-{% from 'macros.html' import post_card %}
+{% from 'macros.html' import post_card with context %}
 
 {% block title %}Collections{% endblock %}
 
@@ -11,7 +11,7 @@
         {% if collects %}
         <div class="card-columns">
             {% for collect in collects %}
-            {{ post_card(collect.collected, user, moment) }}
+            {{ post_card(collect.collected) }}
             {% endfor %}
         </div>
         {% else %}

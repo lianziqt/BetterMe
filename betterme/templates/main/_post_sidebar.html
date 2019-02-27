@@ -1,3 +1,4 @@
+{% from 'macros.html' import user_card with context %}
 <nav aria-label="Page navigation">
     <ul class="pagination">
         <li class="page-item">
@@ -8,22 +9,7 @@
         </li>
     </ul>
 </nav>
-<div class="card bg-light mb-3 w-100 sidebar-card">
-    <div class="card-body">
-        <div class="row">
-            <a href="{{ url_for('user.index', username=post.user.username) }}">
-                <img class="sidebar-avatar rounded avatar-m"
-                     src="{{ url_for('main.get_avatar', filename=post.user.m_avatar) }}">
-            </a>
-            <div class="sidebar-profile">
-                <h6 class="card-title">
-                    <a href="{{ url_for('user.index', username=post.user.username) }}">{{ post.user.name }}</a>
-                </h6>
-                <p class="card-subtitle mb-2 text-muted">{{ post.user.username }}</p>
-            </div>
-        </div>
-    </div>
-</div>
+{{ user_card(post.user) }}
 <div class="card bg-light mb-3 w-100">
     <div class="card-body">
         <div id="description">

@@ -1,31 +1,29 @@
 {% extends 'base.html' %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
-{% from 'macros.html' import post_card, follow_button with context %}
+{% from 'macros.html' import user_card with context %}
 
-{% block title %}{{ user.name }}{% endblock %}
+{% block title %}Followers{% endblock %}
 
 {% block content %}
 {% include 'user/_header.html' %}
 <div class="row">
     <div class="col-md-12">
-        {% if posts %}
+        {% if follows|length != 1 %}
         <div class="card-columns">
-            {% for post in posts %}
-            {{ post_card(post) }}
+            {% for follow in follows %}
+                {% if follow.follower != user %}
+                    {{ user_card(follow.follower) }}
+                {% endif %}
             {% endfor %}
         </div>
         {% else %}
         <div class="tip text-center">
-            <h3>No posts.</h3>
-            {% if user == current_user %}
-            <a class="btn btn-link" href="{{ url_for('main.upload') }}">Upload</a>
-            {% else %}
+            <h3>No Follower.</h3>
             <a class="btn btn-link" href="{{ url_for('main.explore') }}">Explore</a>
-            {% endif %}
         </div>
         {% endif %}
 
-{% if posts %}
+{% if follows %}
 <div class="page-footer">
     {{ render_pagination(pagination, align='right') }}
 </div>
