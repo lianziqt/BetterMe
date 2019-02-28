@@ -188,6 +188,22 @@ $(function () {
         });
     }
 
+    function update_notifications_count() {
+        var $el = $('#notification-badge');
+        $.ajax({
+            type: 'GET',
+            url: $el.data('href'),
+            success: function (data) {
+                if (data.count === 0) {
+                    $('#notification-badge').hide();
+                } else {
+                    $el.show();
+                    $el.text(data.count)
+                }
+            }
+        });
+    }
+
     function follow(e) {
         var $el = $(e.target);
         var id = $el.data('id')
@@ -237,5 +253,7 @@ $(function () {
     $('.profile-popover').hover(show_profile_popover.bind(this), hide_profile_popover.bind(this));
     $(document).on('click', '.follow-btn', follow.bind(this));
     $(document).on('click', '.unfollow-btn', unfollow.bind(this));
-
+    if (is_authenticated) {
+        setInterval(update_notifications_count, 60000);
+    }
 });

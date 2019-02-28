@@ -53,10 +53,11 @@ class User(db.Model, UserMixin):
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     role = db.relationship('Role', back_populates='users')
 
-    posts = db.relationship('Post', back_populates='user')
-    photos = db.relationship('Photo', back_populates='user')
+    posts = db.relationship('Post', back_populates='user', cascade='all')
+    photos = db.relationship('Photo', back_populates='user', cascade='all')
 
-    comments = db.relationship('Comment', back_populates='user')
+    notifications = db.relationship('Notification', back_populates='receiver', cascade='all')
+    comments = db.relationship('Comment', back_populates='user', cascade='all')
     collections = db.relationship(
         'Collect', back_populates='collector', cascade='all')
 
@@ -268,5 +269,13 @@ class Collect(db.Model):
     collected = db.relationship(
         'Post', back_populates='collectors', lazy='joined')
 
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Integer, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    receiver = db.relationship('User', back_populates='notifications')
 

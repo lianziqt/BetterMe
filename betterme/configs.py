@@ -16,7 +16,7 @@ else:
 class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', 'my secret string')
 
-    POST_PER_PAGE = 12
+    POST_PER_PAGE = 24
     COMMENT_PER_PAGE = 15
     NOTIFICATION_PER_PAGE = 20
     USER_PER_PAGE = 20
@@ -45,7 +45,7 @@ class BaseConfig:
     DROPZONE_ALLOWED_FILE_TYPE = 'image'
     MAX_CONTENT_LENGTH = 3 * 1024 * 1024
 
-    PHOTO_SIZE = {'small': 400, 'medium': 800}
+    PHOTO_SIZE = {'small': 300, 'medium': 500}
     PHOTO_SUFFIX = {PHOTO_SIZE['small']: '_s',
                            PHOTO_SIZE['medium']: '_m',
                            }

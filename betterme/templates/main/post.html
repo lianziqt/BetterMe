@@ -10,15 +10,11 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <p class="card-text">{{ post.body }}</p>
+                    <p class="card-text h4">{{ post.body }}</p>
                 {% if post.photos %}
                 <hr>
                 {{show_post_photos(post.photos)}}
                 {% endif %}
-                    <hr>
-                    <small class="text-muted">
-                        <span class="oi oi-comment-square"></span> {{ post.comments|length }}
-                    </small>
                 </div>
                 <div class="card-footer">
                     {% if current_user == post.user %}

@@ -4,6 +4,8 @@ from flask import render_template, Blueprint, current_app,request, redirect,url_
 from betterme.models import User, Post, Photo, Collect, Follow
 from flask_login import login_required, current_user
 from betterme.decorators import confirm_required, permission_required
+from betterme.notifications import push_follow_notification
+
 
 user_bp = Blueprint('user', __name__)
 
@@ -37,6 +39,8 @@ def follow(username):
     
     current_user.follow(user)
     flash('Follow successful', 'info')
+    if current_user != user:
+        push_follow_notification(current_user._get_current_object(), user)
     return redirect(url_for('.index', username=username))
 
 @user_bp.route('/unfollow/<username>', methods=['POST'])

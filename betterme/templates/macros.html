@@ -1,22 +1,26 @@
 {% macro post_card(post) %}
-<a  href="{{ url_for('main.show_post', post_id=post.id) }}">
+
 <div class="card">
     {% if post.photos %}
+    <a  href="{{ url_for('main.show_post', post_id=post.id) }}">
     <img src="{{ url_for('main.get_first_image', post_id=post.id) }}" class="card-img-top" >
+    </a>
     {% endif %}
     <div class="card-body">
         <p class="card-text">{{ post.body }}</p>
         <hr>
+        <a  href="{{ url_for('main.show_post', post_id=post.id) }}">
         <small><span class="oi oi-comment-square"></span> {{ post.comments|length }}</small>
         {% if post.collectors %}
         <small><span class="oi oi-heart"></span> {{ post.collectors|length }} </small>
         {% endif %}
+        </a>
     </div>
     <div class="card-footer">
-        <small class="text-muted">at {{ moment(user.member_since).format('LL') }}</small>
+        <small class="text-muted">at {{ moment(post.timestamp).format('LL') }}</small>
     </div>
 </div>
-</a>
+
 
 {% endmacro %}
 
@@ -28,7 +32,7 @@
     <div class="col-sm-4">
         <div class="card">
             <a href="{{ url_for('main.get_image', filename=photo.filename, user_id=photo.user.id) }}" target="_blank">
-                <img class="card-img-top" src="{{ url_for('main.get_image', filename=photo.m_filename, user_id=photo.user.id) }}">
+                <img class="card-img-top" src="{{ url_for('main.get_image', filename=photo.s_filename, user_id=photo.user.id) }}">
             </a>
         </div>
     </div>

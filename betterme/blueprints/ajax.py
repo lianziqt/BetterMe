@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from betterme.decorators import permission_required, confirm_required
 from betterme.forms.main import PostForm, TagForm, CommentForm
-from betterme.models import User, Post, Photo, Comment, Tag
+from betterme.models import User, Post, Photo, Comment, Tag, Notification
 from betterme.extensions import db
 from betterme.utils import rename_image, resize_image, flash_errors
 
@@ -50,3 +50,10 @@ def unfollow(username):
 
     current_user.unfollow(user)
     return jsonify(message='Follow canceled.')
+
+@ajax_bp.route('/notification-count')
+def notifications_count():
+    if not current_user.is_authenticated:
+        return jsonify(message='Require login'), 403
+    count = Notifcation.query.with_parent(current_user).filter_by(is_read=False).count()
+    return jsonify(count=count)

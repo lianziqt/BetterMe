@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>Notifications
+            <small class="text-muted">{{ pagination.total }}</small>
+        </h1>
+
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">Filter </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter', 'all') == 'all' %}active{% endif %}"
+                   href="{{ url_for('main.show_notifications', filter='all') }}">All</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
+                   href="{{ url_for('main.show_notifications', filter='unread') }}">Unread
+            </li>
+        </ul>
+    </div>
+    <div class="float-right">
+            <form class="inline" method="post" action="{{ url_for('.read_all_notifications') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-light ">
+                    <span class="oi oi-check" aria-hidden="true"></span> Read all
+                </button>
+            </form>
+    </div>
+    {% if notifications %}
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>No.</th>
+                <th>Body</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            {% for notification in notifications %}
+                <tr {% if not notification.is_read %}class="table-warning" {% endif %}>
+                    <td>{{ loop.index + ((pagination.page - 1) * config['NOTIFICATION_PER_PAGE']) }}</td>
+                    <td>{{ notification.body|safe }}</td>
+                    <td>{{ moment(notification.timestamp).format('LL') }}</td>
+                    <td>
+                        {% if not notification.is_read %}
+                            <form class="inline"
+                                action="{{ url_for('.read_notification', notification_id=notification.id) }}"
+                                method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-light btn-sm">
+                                <span class="oi oi-check" aria-hidden="true"></span>
+                            </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% else %}
+        <div class="tip"><h5>No notifications.</h5></div>
+    {% endif %}
+{% endblock %}

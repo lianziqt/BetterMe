@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-import os
+import os, random
 from flask import render_template, flash, redirect, url_for, request, \
     current_app, Blueprint, abort, make_response, send_from_directory
 from flask_login import current_user, login_required
+from sqlalchemy.sql.expression import func
 
 from betterme.decorators import permission_required, confirm_required
 from betterme.forms.main import PostForm, TagForm, CommentForm
-from betterme.models import User, Post, Photo, Comment, Tag, Collect
+from betterme.models import User, Post, Photo, Comment, Tag, Collect, Notification,Follow
 from betterme.extensions import db
 from betterme.utils import rename_image, resize_image, flash_errors
+from betterme.notifications import push_collect_notification, push_comment_notification
 
 
 main_bp = Blueprint('main', __name__)
@@ -16,14 +18,30 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    return render_template('main/index.html')
+    if current_user.is_authenticated:
+        page = request.args.get('page', 1, type=int)
+        per_page = current_app.config['POST_PER_PAGE']
+        pagination = Post.query\
+                .join(Follow, Follow.followed_id == Post.user_id)\
+                .filter(Follow.follower_id == current_user.id)\
+                .order_by(Post.timestamp.desc())\
+                .paginate(page, per_page)
+        posts = pagination.items
+        photos = None
+        tags = Tag.query.join(Tag.posts).group_by(Tag.id).order_by(func.count(Post.id).desc()).limit(8)
+    else:
+        photos = Photo.query.order_by(func.random()).limit(4)
+        posts = None
+        pagination = None
+        tags = None
+    return render_template('main/index.html', posts=posts, photos=photos, pagination=pagination, tags=tags)
 
 
 @main_bp.route('/explore')
 @permission_required('ADMINISTER')
 def explore():
-    return render_template('main/explore.html')
-
+    posts = Post.query.order_by(func.random()).limit(12) 
+    return render_template('main/explore.html', posts=posts)
 
 @main_bp.route('/avatars/<path:filename>')
 def get_avatar(filename):
@@ -40,13 +58,9 @@ def get_image(filename, user_id):
 @main_bp.route('/get/<int:post_id>')
 def get_first_image(post_id):
     post = Post.query.get_or_404(post_id)
-
     photos = post.photos
-
-    filename = photos[0].s_filename
-    print(filename)
+    filename = photos[0].m_filename
     user_path = os.path.join(current_app.config['UPLOAD_PATH'], post.user.name)
-    print(user_path)
     return send_from_directory(user_path, filename)
 
 
@@ -66,10 +80,8 @@ def upload():
             os.makedirs(path)
         f.save(os.path.join(
             current_app.config['UPLOAD_PATH'], current_user.name, filename))
-        sfname = resize_image(
-            f, filename, current_app.config['PHOTO_SIZE']['small'])
-        mfname = resize_image(
-            f, filename, current_app.config['PHOTO_SIZE']['medium'])
+        sfname = resize_image(f, filename, current_app.config['PHOTO_SIZE']['small'])
+        mfname = resize_image(f, filename, current_app.config['PHOTO_SIZE']['medium'])
 
         p = Photo(
             filename=filename,
@@ -176,6 +188,8 @@ def new_comment(post_id):
         db.session.add(comment)
         db.session.commit()
         flash('Comment published.', 'success')
+        if current_user != post.user:
+            push_comment_notification(post.id, receiver=post.user, page=page)
     flash_errors(form)
     return redirect(url_for('.show_post', post_id=post_id, page=page))
 
@@ -272,7 +286,7 @@ def show_tag(tag_id, order):
     order_rule = 'time'
     pagination = Post.query.with_parent(tag).order_by(
         Post.timestamp.desc()).paginate(page, per_page)
-    posts = pagination.items()
+    posts = pagination.items
 
     if order == 'by_collects':
         posts.sort(key=lambda x: len(x.collectors), reverse=True)
@@ -310,6 +324,8 @@ def collect_post(post_id):
 
     current_user.collect(post)
     flash('Collect post.', 'success')
+    if current_user != post.user:
+        push_collect_notification(current_user._get_current_object(), post)
     return redirect(url_for('.show_post', post_id=post_id))
 
 
@@ -334,3 +350,37 @@ def show_collectors(post_id):
         Collect.timestamp.asc()).paginate(page, per_page)
     collects=pagination.items
     return render_template('main/collectors.html', collects=collects, post=post, pagination=pagination)
+
+@main_bp.route('/notifications')
+@login_required
+def show_notifications():
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['NOTIFICATION_PER_PAGE']
+    notifications = Notification.query.with_parent(current_user)
+    filter_rule = request.args.get('filter')
+    if filter_rule == 'unread':
+        notifications = notifications.filter_by(is_read=False)
+
+    pagination = notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page)
+    notifications = pagination.items
+    return render_template('main/notifications.html', pagination=pagination, notifications=notifications)
+
+@main_bp.route('/read-notification/<int:notification_id>', methods=['POST'])
+@login_required
+def read_notification(notification_id):
+    notification = Notification.query.get_or_404(notification_id)
+    if current_user != notification.receiver:
+        abort(403)
+    notification.is_read = True
+    db.session.commit()
+    flash('Notification archived.', 'success')
+    return redirect(url_for('.show_notifications'))
+
+@main_bp.route('/read-all-notifications')
+@login_required
+def read_all_notifications():
+    for notification in current_user.notifications:
+        notification.is_read = True
+    db.session.commit()
+    flash('All notifications archived.', 'success')
+    return redirect(url_for('.show_notifications'))
