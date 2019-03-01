@@ -9,7 +9,7 @@ from betterme.decorators import permission_required, confirm_required
 from betterme.forms.main import PostForm, TagForm, CommentForm
 from betterme.models import User, Post, Photo, Comment, Tag, Collect, Notification,Follow
 from betterme.extensions import db
-from betterme.utils import rename_image, resize_image, flash_errors
+from betterme.utils import rename_image, resize_image, flash_errors,redirect_back
 from betterme.notifications import push_collect_notification, push_comment_notification
 
 
@@ -376,7 +376,7 @@ def read_notification(notification_id):
     flash('Notification archived.', 'success')
     return redirect(url_for('.show_notifications'))
 
-@main_bp.route('/read-all-notifications')
+@main_bp.route('/read-all-notifications', methods=['POST'])
 @login_required
 def read_all_notifications():
     for notification in current_user.notifications:
@@ -384,3 +384,21 @@ def read_all_notifications():
     db.session.commit()
     flash('All notifications archived.', 'success')
     return redirect(url_for('.show_notifications'))
+
+@main_bp.route('/search')
+def search():
+    t= request.args.get('t', '')
+    if t == '':
+        flash('Enter keyword about photo, user or tag.', 'warning') 
+        return redirect_back()
+    category = request.args.get('category', 'post')
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['SEARCH_RESULT_PER_PAGE']
+    if category == 'post':
+        pagination = Post.query.whooshee_search(t).paginate(page, per_page)
+    elif category == 'tag':
+        pagination = Tag.query.whooshee_search(t).paginate(page, per_page)
+    else:
+        pagination = User.query.whooshee_search(t).paginate(page, per_page)
+    results = pagination.items
+    return render_template('main/search.html', t=t, results=results, pagination=pagination, category=category)

@@ -32,8 +32,8 @@
                     {{ render_nav_item('main.index', 'Home') }}
                     {{ render_nav_item('main.explore', 'Explore') }}
                     
-                    <form class="form-inline my-2 my-lg-0">
-                        <input type="search" name="q" class="form-control mr-sm-1" placeholder="Photo, tag or user"
+                    <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.search') }}">
+                        <input type="search" name="t" class="form-control mr-sm-1" placeholder="Photo, tag or user"
                                required>
                         <button class="btn btn-light my-2 my-sm-0" type="submit">
                             <span class="oi oi-magnifying-glass"></span>
@@ -62,6 +62,9 @@
                                 <span class="oi oi-person"></span> Me
                             </a>
                             <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('user.edit_profile') }}">
+                                    <span class="oi oi-cog"></span> Settings
+                                </a>
                         <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                             <span class="oi oi-power-standby"></span> Logout
                         </a>

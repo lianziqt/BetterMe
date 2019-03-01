@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 from datetime import datetime
 from flask_avatars import Identicon
+from betterme.extensions import whooshee
 
 roles_permissions = db.Table('roles_permissions',
                              db.Column('role_id', db.Integer,
@@ -33,6 +34,7 @@ class Follow(db.Model):
     followed = db.relationship('User', foreign_keys=[
                                followed_id], back_populates='followers', lazy='joined')
 
+@whooshee.register_model('username', 'name')
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, index=True)
@@ -44,9 +46,16 @@ class User(db.Model, UserMixin):
     location = db.Column(db.String(120))
     member_since = db.Column(db.DateTime, default=datetime.utcnow)
 
+    raw_avatar = db.Column(db.String(64))
     l_avatar = db.Column(db.String(64))
     m_avatar = db.Column(db.String(64))
     s_avatar = db.Column(db.String(64))
+
+    public_collections = db.Column(db.Boolean, default=True)
+    receive_comment_notification = db.Column(db.Boolean, default=True)
+    receive_follow_notification = db.Column(db.Boolean, default=True)
+    receive_collect_notification = db.Column(db.Boolean, default=True)
+
 
     confirmed = db.Column(db.Boolean, default=False)
 
@@ -192,6 +201,7 @@ class Permission(db.Model):
         'Role', secondary=roles_permissions, back_populates='permissions')
 
 
+@whooshee.register_model('body')
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String(144))
@@ -207,7 +217,7 @@ class Post(db.Model):
     collectors = db.relationship(
         'Collect', back_populates='collected', cascade='all')
 
-
+@whooshee.register_model('name')
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)

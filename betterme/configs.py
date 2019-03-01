@@ -52,7 +52,7 @@ class BaseConfig:
 
     AVATARS_SAVE_PATH = os.path.join(UPLOAD_PATH, 'avatars') 
     AVATARS_SIZE_TUPLE = (30, 100, 200)
-
+    WHOOSHEE_MIN_STRING_LEN = 1
 
 class DevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = \

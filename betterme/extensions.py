@@ -8,6 +8,7 @@ from flask_login import LoginManager, AnonymousUserMixin
 from flask_dropzone import Dropzone
 from flask_wtf.csrf import CsrfProtect
 from flask_avatars import Avatars
+from flask_whooshee import Whooshee
 
 bootstrap = Bootstrap()
 moment = Moment()
@@ -17,6 +18,7 @@ login_manager = LoginManager()
 dropzone = Dropzone()
 csrfprotect = CsrfProtect()
 avatars = Avatars()
+whooshee = Whooshee()
 
 @login_manager.user_loader
 def load_user(user_id):

@@ -9,18 +9,30 @@
     <div class="card-body">
         <p class="card-text">{{ post.body }}</p>
         <hr>
-        <a  href="{{ url_for('main.show_post', post_id=post.id) }}">
+        <div class="row">
+            <div class="col-md-3">
+                <a href="{{ url_for('user.index', username=post.user.username) }}">
+                    <img class="" 
+                    src="{{ url_for('main.get_avatar', filename=post.user.s_avatar) }}">
+                </a>
+            </div>
+            <div class="col-md-9">
+                    <h6>
+                    <a href="{{ url_for('user.index', username=post.user.username) }}">{{ post.user.name }}</a>
+                    </h6>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+    <a  href="{{ url_for('main.show_post', post_id=post.id) }}">
         <small><span class="oi oi-comment-square"></span> {{ post.comments|length }}</small>
         {% if post.collectors %}
         <small><span class="oi oi-heart"></span> {{ post.collectors|length }} </small>
         {% endif %}
         </a>
-    </div>
-    <div class="card-footer">
         <small class="text-muted">at {{ moment(post.timestamp).format('LL') }}</small>
     </div>
 </div>
-
 
 {% endmacro %}
 

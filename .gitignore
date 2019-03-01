@@ -111,6 +111,7 @@ venv.bak/
 logs/*
 !logs/.gitkeep
 migrations/
+whooshee/
 
 #picthure
 *.png

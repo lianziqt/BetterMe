@@ -19,10 +19,11 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
-                   href="{{ url_for('main.show_notifications', filter='unread') }}">Unread
+                   href="{{ url_for('main.show_notifications', filter='unread') }}">Unread</a>
             </li>
         </ul>
     </div>
+    {% if notifications %}
     <div class="float-right">
             <form class="inline" method="post" action="{{ url_for('.read_all_notifications') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -31,7 +32,6 @@
                 </button>
             </form>
     </div>
-    {% if notifications %}
         <table class="table table-striped">
             <thead>
             <tr>

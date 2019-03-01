@@ -21,7 +21,7 @@ from betterme.configs import Operations
 def generate_token(user, operation, expire_in=None, **kwargs):
     s = Serializer(current_app.config['SECRET_KEY'], expire_in)
 
-    data = {'id': user.id, 'opertion': operation}
+    data = {'id': user.id, 'operation': operation}
     data.update(**kwargs)
     return s.dumps(data)
 
@@ -34,7 +34,7 @@ def validate_token(user, token, operation, new_password=None):
     except (SignatureExpired, BadSignature):
         return False
     
-    if operation != data.egt('operation') or user.id != data.get('id'):
+    if operation != data.get('operation') or user.id != data.get('id'):
         return False
     
     if operation == Operations.CONFIRM:

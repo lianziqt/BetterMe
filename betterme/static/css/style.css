@@ -289,3 +289,10 @@ a:hover{
     left: -15px;
     border-radius: 50%;
 }
+#preview-box { 
+    display: block;
+    position: absolute; 
+    top: 10px; 
+    right: -280px; 
+    padding: 6px;
+}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'macros.html' import post_card, user_card with context %}
+
+{% block title %}Search: {{ t }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+        <h1>Search: {{ t }}</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="nav nav-pills flex-column" role="tablist" aria-orientation="vertical">
+                <a class="nav-item nav-link {% if category == 'post' %}active{% endif %}"
+                   href="{{ url_for('.search', t=t, category='post') }}">Post</a>
+                <a class="nav-item nav-link {% if category == 'user' %}active{% endif %}"
+                   href="{{ url_for('.search', t=t, category='user') }}">User</a>
+                <a class="nav-item nav-link {% if category == 'tag' %}active{% endif %}"
+                   href="{{ url_for('.search', t=t, category='tag') }}">Tag</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            {% if results %}
+                <h5>{{ results|length }} results</h5>
+                <div class="card-columns">
+                {% for item in results %}
+                    {% if category == 'post' %}
+                        {{ post_card(item) }}
+                    {% elif category == 'user' %}
+                        {{ user_card(item) }}
+                    {% else %}
+                        <a class="badge badge-light" href="{{ url_for('.show_tag', tag_id=item.id) }}">
+                            {{ item.name }} {{ item.posts|length }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% else %}
+                <h5 class="tip">No results.</h5>
+            {% endif %}
+        </div>
+    </div>
+    {% if results %}
+        <div class="page-footer">
+            {{ render_pagination(pagination, align='right') }}
+        </div>
+    {% endif %}
+{% endblock %}
