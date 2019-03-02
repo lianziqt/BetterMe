@@ -2,124 +2,131 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        {% block head %}
-            <title>{% block title %}{% endblock %} - BetterMe</title>
-            <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-            {% block styles %}
-                <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-                <link rel="stylesheet" href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}">
-                <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-            {% endblock styles %}
-        {% endblock head %}
-    </head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% block head %}
+    <title>{% block title %}{% endblock %} - BetterMe</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% endblock styles %}
+    {% endblock head %}
+</head>
+
 <body>
-{% block nav %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    {% block nav %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
                 <img src="{{ url_for('static', filename='favicon.ico') }}" alt="BetterMe">
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
-                    aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarColor01">
                 <div class="navbar-nav mr-auto">
-                    {{ render_nav_item('main.index', 'Home') }}
-                    {{ render_nav_item('main.explore', 'Explore') }}
-                    
+                    {{ render_nav_item('main.index', '主页') }}
+                    {{ render_nav_item('main.explore', '发现') }}
+
                     <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.search') }}">
-                        <input type="search" name="t" class="form-control mr-sm-1" placeholder="Photo, tag or user"
-                               required>
+                        <input type="search" name="t" class="form-control mr-sm-1" placeholder="……" required>
                         <button class="btn btn-light my-2 my-sm-0" type="submit">
                             <span class="oi oi-magnifying-glass"></span>
                         </button>
                     </form>
                 </div>
                 <div class="navbar-nav ml-auto">
-                {{ render_nav_item('main.upload', 'Upload') }}
-                {% if current_user.is_authenticated %}
-                <a class="nav-item nav-link" href="{{ url_for('main.show_notifications', filter='unread') }}">
-                    <span class="oi oi-bell"></span>
-                    <span id="notification-badge"
+                    {{ render_nav_item('main.upload', '发微博') }}
+                    {% if current_user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{{ url_for('main.show_notifications', filter='unread') }}">
+                        <span class="oi oi-bell"></span>
+                        <span id="notification-badge"
                             class="{% if notification_count == 0 %}hide{% endif %} badge badge-danger badge-notification"
                             data-href="{{ url_for('ajax.notifications_count') }}">{{ notification_count }}</span>
-                </a>
-                <img src="{{ url_for('main.get_avatar', filename=current_user.s_avatar) }}">
-                <div class="dropdown nav-item">
-                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-                       aria-expanded="false">
-                        {{ current_user.name }}<span class="caret"></span>
                     </a>
-                    <div class="dropdown-menu dropdown-menu-right" role="menu">
-                        <h6 class="dropdown-header">Logged in as {{ current_user.username }}</h6>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url_for('user.index', username=current_user.username) }}">
-                                <span class="oi oi-person"></span> Me
+                    <img src="{{ url_for('main.get_avatar', filename=current_user.s_avatar) }}">
+                    <div class="dropdown nav-item">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                            aria-expanded="false">
+                            {{ current_user.name }}<span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" role="menu">
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('user.index', username=current_user.username) }}">
+                                <span class="oi oi-person"></span> 个人界面
                             </a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{{ url_for('user.edit_profile') }}">
-                                    <span class="oi oi-cog"></span> Settings
-                                </a>
-                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                            <span class="oi oi-power-standby"></span> Logout
-                        </a>
+                                <span class="oi oi-cog"></span> 个人设置
+                            </a>
+                            {% if current_user.can('MODERATE') %}
+                            <a class="dropdown-item" href="{{ url_for('admin.index') }}">
+                                <span class="oi oi-dashboard"></span> 后台
+                            </a>
+                            {% endif %}
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <span class="oi oi-power-standby"></span> 注销
+                            </a>
+                        </div>
                     </div>
+                    {% else %}
+                    <a class="btn btn-outline-primary" href="{{ url_for('auth.login') }}">登陆</a>&nbsp;&nbsp;
+                    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">注册 BetterMe</a>
+                    {% endif %}
                 </div>
-            {% else %}
-                <a class="btn btn-outline-primary" href="{{ url_for('auth.login') }}">Login</a>&nbsp;&nbsp;
-                <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Join BetterMe</a>
-            {% endif %}
             </div>
         </div>
-    </div>
-</nav>
-{% endblock %}
+    </nav>
+    {% endblock %}
 
-<main>
+    <main>
         <div class="container">
             {% for message in get_flashed_messages(with_categories=True) %}
-                <div class="alert alert-{{ message[0] }}">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    {{ message[1] }}
-                </div>
+            <div class="alert alert-{{ message[0] }}">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message[1] }}
+            </div>
             {% endfor %}
             {% block content %}{% endblock %}
             {% block footer %}
-                <footer>
-                    <p class="float-left">
-                        <small>&copy; 2018
-                            <a href="http://www.balthasar.cn" title="Written by lianziqt">lianziqt</a> -
-                            <a href="https://github.com/lianziqt/BetterMe" title="Fork me on GitHub">GitHub</a> -
-                        </small>
-                    </p>
-                    <p class="float-right">
-                        <small>Remember every wonderful moment to be a better man.</small>
-                    </p>
-                </footer>
+            <footer>
+                <p class="float-left">
+                    <small>&copy; 2018
+                        <a href="http://www.balthasar.cn" title="Written by lianziqt">lianziqt</a> -
+                        <a href="https://github.com/lianziqt/BetterMe" title="Fork me on GitHub">GitHub</a> -
+                    </small>
+                </p>
+                <p class="float-right">
+                    <small>Remember every wonderful moment to be a better man.</small>
+                </p>
+            </footer>
             {% endblock %}
         </div>
-</main>
-<div id="toast"></div>
-{% block scripts %}
-        <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-        {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales.min.js')) }}
-        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-        <script type="text/javascript">
-            var csrf_token = "{{ csrf_token() }}";
-            {% if current_user.is_authenticated %}
-                var is_authenticated = true;
-            {% else %}
-                var is_authenticated = false;
-            {% endif %}
-        </script>
+    </main>
+    <div id="toast"></div>
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales.min.js')) }}
+    {{ moment.locale(auto_detect=True) }}
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script type="text/javascript">
+        var csrf_token = "{{ csrf_token() }}";
+        {% if current_user.is_authenticated %}
+        var is_authenticated = true;
+        {% else %}
+        var is_authenticated = false;
+        {% endif %}
+    </script>
     {% endblock %}
-    
+
 </body>
+
 </html>

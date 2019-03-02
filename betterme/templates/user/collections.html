@@ -2,7 +2,7 @@
 {% from 'bootstrap/pagination.html' import render_pagination %}
 {% from 'macros.html' import post_card with context %}
 
-{% block title %}Collections{% endblock %}
+{% block title %}收藏{% endblock %}
 
 {% block content %}
 {% include 'user/_header.html' %}
@@ -16,8 +16,8 @@
         </div>
         {% else %}
         <div class="tip text-center">
-            <h3>No posts.</h3>
-            <a class="btn btn-link" href="{{ url_for('main.explore') }}">Explore</a>
+            <h3>没有微博</h3>
+            <a class="btn btn-link" href="{{ url_for('main.explore') }}">发现</a>
         </div>
         {% endif %}
 

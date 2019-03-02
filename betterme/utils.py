@@ -71,14 +71,6 @@ def redirect_back(default='main.index', **kwargs):
     return redirect(url_for(default, **kwargs))
 
 
-def flash_errors(form):
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"Error in the %s field - %s" % (
-                getattr(form, field).label.text,
-                error
-            ))
-
 def rename_image(oldname):
     ext = os.path.splitext(oldname)[1]
     newname = uuid.uuid4().hex + ext
@@ -100,7 +92,7 @@ def resize_image(image, filename, base_width):
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
-            flash(u"Error in the %s field - %s" % (
+            flash(u" %s 字段有错误 - %s" % (
                 getattr(form, field).label.text,
                 error
             ))

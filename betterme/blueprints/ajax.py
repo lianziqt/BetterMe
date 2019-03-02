@@ -25,35 +25,35 @@ def count_follower(user_id):
 @ajax_bp.route('/follow/<username>', methods=['POST'])
 def follow(username):
     if not current_user.is_authenticated:
-        return jsonify(message='Login required.'), 403
+        return jsonify(message='请先登录'), 403
     if not current_user.confirmed:
-        return jsonify(message='Confirm account required.'), 400
+        return jsonify(message='请先完成账户确认'), 400
     if not current_user.can('FOLLOW'):
-        return jsonify(message='No permission.'), 403
+        return jsonify(message='您没有该权限'), 403
 
     user = User.query.filter_by(username=username).first_or_404()
     if current_user.is_follow(user):
-        return jsonify(message='Already followed.'), 400
+        return jsonify(message='亲，已经关注了'), 400
 
     current_user.follow(user)
-    return jsonify(message='User followed.')
+    return jsonify(message='关注成功')
 
 
 @ajax_bp.route('/unfollow/<username>', methods=['POST'])
 def unfollow(username):
     if not current_user.is_authenticated:
-        return jsonify(message='Login required.'), 403
+        return jsonify(message='请先登陆'), 403
 
     user = User.query.filter_by(username=username).first_or_404()
     if not current_user.is_follow(user):
-        return jsonify(message='Not follow yet.'), 400
+        return jsonify(message='还没关注'), 400
 
     current_user.unfollow(user)
-    return jsonify(message='Follow canceled.')
+    return jsonify(message='取消关注')
 
 @ajax_bp.route('/notification-count')
 def notifications_count():
     if not current_user.is_authenticated:
-        return jsonify(message='Require login'), 403
+        return jsonify(message='请先登录'), 403
     count = Notification.query.with_parent(current_user).filter_by(is_read=False).count()
     return jsonify(count=count)

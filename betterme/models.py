@@ -58,6 +58,8 @@ class User(db.Model, UserMixin):
 
 
     confirmed = db.Column(db.Boolean, default=False)
+    locked = db.Column(db.Boolean, default=False)
+    active = db.Column(db.Boolean, default=True)
 
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     role = db.relationship('Role', back_populates='users')
@@ -139,7 +141,24 @@ class User(db.Model, UserMixin):
             follow = self.following.filter_by(followed_id=user.id).first()
             db.session.delete(follow)
             db.session.commit()
+            
+    def lock(self):
+        self.locked = True
+        self.role = Role.query.filter_by(name='Locked').first()
+        db.session.commit()
 
+    def unlock(self):
+        self.locked = False
+        self.role = Role.query.filter_by(name='User').first()
+        db.session.commit()
+
+    def block(self):
+        self.active = False
+        db.session.commit()
+
+    def unblock(self):
+        self.active = True
+        db.session.commit()
 
 
     @property

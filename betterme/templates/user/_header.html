@@ -33,9 +33,9 @@
 
 <div class="user-nav">
     <ul class="nav nav-tabs">
-        {{ render_nav_item('user.index', 'Photo', user.photos|length, username=user.username) }}
-        {{ render_nav_item('user.show_collections', 'Collect', user.collections|length, username=user.username) }}
-        {{ render_nav_item('user.show_followers', 'Follower', user.followers.count()-1 , username=user.username) }}
-        {{ render_nav_item('user.show_following', 'Following', user.following.count()-1 , username=user.username) }}
+        {{ render_nav_item('user.index', '微博', user.photos|length, username=user.username) }}
+        {{ render_nav_item('user.show_collections', '收藏', user.collections|length, username=user.username) }}
+        {{ render_nav_item('user.show_followers', '粉丝', user.followers.count()-1 , username=user.username) }}
+        {{ render_nav_item('user.show_following', '关注', user.following.count()-1 , username=user.username) }}
     </ul>
 </div>

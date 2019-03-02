@@ -10,7 +10,9 @@ from flask_wtf.csrf import CsrfProtect
 from flask_avatars import Avatars
 from flask_whooshee import Whooshee
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_migrate import Migrate
 
+migrate = Migrate()
 bootstrap = Bootstrap()
 moment = Moment()
 mail = Mail()

@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
 
-{% block title %}Notifications{% endblock %}
+{% block title %}消息{% endblock %}
 
 {% block content %}
     <div class="page-header">
-        <h1>Notifications
+        <h1>消息
             <small class="text-muted">{{ pagination.total }}</small>
         </h1>
 
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link disabled" href="#">Filter </a>
+                <a class="nav-link disabled" href="#">过滤 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter', 'all') == 'all' %}active{% endif %}"
-                   href="{{ url_for('main.show_notifications', filter='all') }}">All</a>
+                   href="{{ url_for('main.show_notifications', filter='all') }}">所有</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
-                   href="{{ url_for('main.show_notifications', filter='unread') }}">Unread</a>
+                   href="{{ url_for('main.show_notifications', filter='unread') }}">未读</a>
             </li>
         </ul>
     </div>
@@ -28,7 +28,7 @@
             <form class="inline" method="post" action="{{ url_for('.read_all_notifications') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-light ">
-                    <span class="oi oi-check" aria-hidden="true"></span> Read all
+                    <span class="oi oi-check" aria-hidden="true"></span> 标记所有为已读
                 </button>
             </form>
     </div>
@@ -36,9 +36,9 @@
             <thead>
             <tr>
                 <th>No.</th>
-                <th>Body</th>
-                <th>Time</th>
-                <th>Actions</th>
+                <th>正文</th>
+                <th>时间</th>
+                <th>操作</th>
             </tr>
             </thead>
             {% for notification in notifications %}
@@ -63,6 +63,6 @@
         </table>
         <div class="page-footer">{{ render_pagination(pagination) }}</div>
     {% else %}
-        <div class="tip"><h5>No notifications.</h5></div>
+        <div class="tip"><h5>目前没有消息</h5></div>
     {% endif %}
 {% endblock %}

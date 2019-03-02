@@ -39,11 +39,11 @@ def show_collections(username):
 def follow(username):
     user = User.query.filter_by(username=username).first_or_404()
     if current_user.is_follow(user):
-        flash('You have already followed this user', 'info')
+        flash('已经关注', 'info')
         return redirect(url_for('.index', username=username))
     
     current_user.follow(user)
-    flash('Follow successful', 'info')
+    flash('关注成功', 'info')
     if current_user != user:
         push_follow_notification(current_user._get_current_object(), user)
     return redirect(url_for('.index', username=username))
@@ -55,11 +55,11 @@ def follow(username):
 def unfollow(username):
     user = User.query.filter_by(username=username).first_or_404()
     if not current_user.is_follow(user):
-        flash('Not follow', 'info')
+        flash('还没关注', 'info')
         return redirect(url_for('.index', username=username))
     
     current_user.unfollow(user)
-    flash('Unfollow successful', 'info')
+    flash('取消关注', 'info')
     return redirect(url_for('.index', username=username))
 
 @user_bp.route('/<username>/followers')
@@ -86,13 +86,13 @@ def show_following(username):
 def edit_profile():
     form = EditProfileForm()
     if form.validate_on_submit():
-        current_user.name = field.name.data
-        current_user.username = field.username.data
+        current_user.name = form.name.data
+        current_user.username = form.username.data
         current_user.bio = form.bio.data
         current_user.website = form.website.data
         current_user.location = form.location.data
         db.session.commit()
-        flash('Profile updated.', 'success')
+        flash('个人资料已更新', 'success')
         #return redirect(url_for('.index', username=current_user.username))
     form.name.data = current_user.name
     form.username.data = current_user.username
@@ -120,7 +120,7 @@ def upload_avatar():
         filename = avatars.save_avatar(image)
         current_user.raw_avatar = filename
         db.session.commit()
-        flash('Image uploaded, please crop.', 'success')
+        flash('头像已上传，请裁剪', 'success')
     flash_errors(form)
     return redirect(url_for('.change_avatar'))
 
@@ -139,7 +139,7 @@ def crop_avatar():
         current_user.m_avatar = filename[1]
         current_user.l_avatar = filename[2]
         db.session.commit()
-        flash('Your avatar changed successful', 'success')
+        flash('已成功更换头像', 'success')
     flash_errors(form)
     return redirect(url_for('.change_avatar'))
 
@@ -150,7 +150,7 @@ def change_email_request():
     if form.validate_on_submit():
         token = generate_token(user=current_user, operation=Operations.CHANGE_EMAIL, new_email=form.email.data.lower())
         send_confirm_email(user=current_user, token=token, to=form.email.data)
-        flash('Confirm email sent, check your inbox.', 'info')
+        flash('验证邮件已发送，请确认', 'info')
         return redirect(url_for('.index', username=current_user.username))
     return render_template('user/settings/change_email.html', form=form)
 
@@ -158,10 +158,10 @@ def change_email_request():
 @login_required
 def change_email(token):
     if validate_token(user=current_user, token=token, operation=Operations.CHANGE_EMAIL):
-        flash('Email Changed successful', 'success')
+        flash('已成功更换邮箱', 'success')
         return redirect(url_for('.index', username=current_user.username))
     else:
-        flash('Invalid or expired token','info')
+        flash('验证链接非法或已过期','info')
         return redirect(url_for('.change_email_request'))
 
 @user_bp.route('/settings/notification', methods=['GET', 'POST'])
@@ -173,7 +173,7 @@ def notification_setting():
         current_user.receive_comment_notification = form.receive_comment_notification.data
         current_user.receive_follow_notification = form.receive_follow_notification.data
         db.session.commit()
-        flash('Notification settings updated.', 'success')
+        flash('通知设置已更新.', 'success')
         return redirect(url_for('.index', username=current_user.username))
     form.receive_collect_notification.data = current_user.receive_collect_notification
     form.receive_comment_notification.data = current_user.receive_comment_notification
@@ -188,7 +188,7 @@ def privacy_setting():
     if form.validate_on_submit():
         current_user.public_collections = form.public_collections.data
         db.session.commit()
-        flash('Privacy settings updated.', 'success')
+        flash('隐私设置已更新', 'success')
         return redirect(url_for('.index', username=current_user.username))
     form.public_collections.data = current_user.public_collections
     return render_template('user/settings/edit_privacy.html', form=form)
@@ -201,7 +201,7 @@ def delete_account():
     if form.validate_on_submit():
         db.session.delete(current_user._get_current_object())
         db.session.commit()
-        flash('Your are free, goodbye!', 'success')
+        flash('最后祝您，身体健康，再见！', 'success')
         return redirect(url_for('main.index'))
     return render_template('user/settings/delete_account.html', form=form)
 
@@ -212,7 +212,7 @@ def change_password():
     if form.validate_on_submit() and current_user.check_passowrd(form.old_password.data):
         current_user.set_password(form.password.data)
         db.session.commit()
-        flash('Password changed successful', 'success')
+        flash('密码已更改', 'success')
         return redirect(url_for('.index', username=current_user.username))
     return render_template('user/settings/change_password.html', form=form)
 

@@ -135,7 +135,7 @@ def next_post(post_id):
         Post.id < post_id).order_by(Post.id.desc()).first()
 
     if next_post is None:
-        flash('This is already the last one.', 'info')
+        flash('已经是最早的微博', 'info')
         return redirect(url_for('.show_post', post_id=post_id))
     return redirect(url_for('.show_post', post_id=next_post.id))
 
@@ -147,7 +147,7 @@ def previous_post(post_id):
         Post.id > post_id).order_by(Post.id.asc()).first()
 
     if previous_post is None:
-        flash('This is already the first one.', 'info')
+        flash('已经是最新的微博', 'info')
         return redirect(url_for('.show_post', post_id=post_id))
     return redirect(url_for('.show_post', post_id=previous_post.id))
 
@@ -163,7 +163,7 @@ def edit_post(post_id):
     if postform.validate_on_submit():
         post.body = postform.body.data
         db.session.commit()
-        flash('Post updated.', 'success')
+        flash('微博已编辑', 'success')
 
     flash_errors(postform)
     return redirect(url_for('.show_post', post_id=post_id))
@@ -186,7 +186,7 @@ def new_comment(post_id):
             comment.replied = Comment.query.get_or_404(replied_id)
         db.session.add(comment)
         db.session.commit()
-        flash('Comment published.', 'success')
+        flash('评论已提交', 'success')
         if current_user != post.user:
             push_comment_notification(post.id, receiver=post.user, page=page)
     flash_errors(form)
@@ -202,7 +202,7 @@ def new_tag(post_id):
 
     form = TagForm()
     if form.validate_on_submit():
-        for name in form.name.data.split():
+        for name in form.tag.data.split():
             tag = Tag.query.filter_by(name=name).first()
             if tag is None:
                 tag = Tag(name=name)
@@ -211,7 +211,7 @@ def new_tag(post_id):
             if tag not in post.tags:
                 post.tags.append(tag)
                 db.session.commit()
-            flash('Tag added.', 'success')
+            flash('标签已添加', 'success')
 
     flash_errors(form)
     return redirect(url_for('.show_post', post_id=post_id))
@@ -226,9 +226,10 @@ def set_comment(post_id):
 
     if post.can_comment:
         post.can_comment = False
+        flash('评论已关闭', 'info')
     else:
         post.can_comment = True
-    flash('Comment setted', 'info')
+        flash('评论已开启','info')
     db.session.commit()
     return redirect(url_for('.show_post', post_id=post_id))
 
@@ -251,11 +252,11 @@ def delete_post(post_id):
         abort(403)
     db.session.delete(post)
     db.session.commit()
-    flash('Post deleted.', 'info')
+    flash('微博已删除', 'info')
 
     next_post = Post.query.with_parent(post.user).filter(
         Post.id < post_id).order_by(Post.id.desc()).first()
-    if next_p is None:
+    if next_post is None:
         next_post = Post.query.with_parent(post.user).filter(
             Post.id > post_id).order_by(Post.id.asc()).first()
         if next_post is None:
@@ -272,7 +273,7 @@ def delete_comment(comment_id):
 
     db.session.delete(comment)
     db.session.commit()
-    flash('Comment deleted', 'info')
+    flash('评论已删除', 'info')
     return redirect(url_for('.show_post', post_id=comment.post_id))
 
 
@@ -307,7 +308,7 @@ def delete_tag(post_id, tag_id):
         db.session.delete(tag)
         db.session.commit()
 
-    flash('Tag deleted.', 'info')
+    flash('标签已删除', 'info')
     return redirect(url_for('.show_photo', photo_id=photo_id))
 
 
@@ -318,11 +319,11 @@ def delete_tag(post_id, tag_id):
 def collect_post(post_id):
     post = Post.query.get_or_404(post_id)
     if current_user.collection(post):
-        flash('You have already collect this post.', 'info')
+        flash('已在收藏中', 'info')
         return redirect(url_for('.show_post', post_id=post_id))
 
     current_user.collect(post)
-    flash('Collect post.', 'success')
+    flash('收藏成功', 'success')
     if current_user != post.user:
         push_collect_notification(current_user._get_current_object(), post)
     return redirect(url_for('.show_post', post_id=post_id))
@@ -333,11 +334,11 @@ def collect_post(post_id):
 def uncollect_post(post_id):
     post=Post.query.get_or_404(post_id)
     if not current_user.collection(post):
-        flash('Not collect this post.', 'info')
+        flash('你未收藏该微博', 'info')
         return redirect(url_for('.show_post', post_id=post_id))
 
     current_user.uncollect(post)
-    flash('Uncollect post.', 'success')
+    flash('已从收藏中移除', 'success')
     return redirect(url_for('.show_post', post_id=post_id))
 
 @main_bp.route('/photo/<int:post_id>/collectors')
@@ -372,7 +373,7 @@ def read_notification(notification_id):
         abort(403)
     notification.is_read = True
     db.session.commit()
-    flash('Notification archived.', 'success')
+    flash('通知已读', 'success')
     return redirect(url_for('.show_notifications'))
 
 @main_bp.route('/read-all-notifications', methods=['POST'])
@@ -381,23 +382,31 @@ def read_all_notifications():
     for notification in current_user.notifications:
         notification.is_read = True
     db.session.commit()
-    flash('All notifications archived.', 'success')
+    flash('所有通知已读', 'success')
     return redirect(url_for('.show_notifications'))
 
 @main_bp.route('/search')
 def search():
     t= request.args.get('t', '')
     if t == '':
-        flash('Enter keyword about photo, user or tag.', 'warning') 
+        flash('请输入搜索关键词', 'warning') 
         return redirect_back()
     category = request.args.get('category', 'post')
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['SEARCH_RESULT_PER_PAGE']
-    if category == 'post':
-        pagination = Post.query.whooshee_search(t).paginate(page, per_page)
-    elif category == 'tag':
-        pagination = Tag.query.whooshee_search(t).paginate(page, per_page)
-    else:
-        pagination = User.query.whooshee_search(t).paginate(page, per_page)
+    try :
+        posts = Post.query.whooshee_search(t)
+        tags = Tag.query.whooshee_search(t)
+        users =  User.query.whooshee_search(t)
+        if category == 'post':
+            pagination = posts.paginate(page, per_page)
+        elif category == 'tag':
+            pagination = tags.paginate(page, per_page)
+        else:
+            pagination = users.paginate(page, per_page)
+    except :
+        flash('请输入合法搜索关键词', 'warning') 
+        return redirect_back()
     results = pagination.items
-    return render_template('main/search.html', t=t, results=results, pagination=pagination, category=category)
+    return render_template('main/search.html', t=t, results=results, pagination=pagination, category=category, \
+                            posts=posts.count(), tags=tags.count(), users=users.count())

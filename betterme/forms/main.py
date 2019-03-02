@@ -6,15 +6,15 @@ from wtforms import ValidationError
 from betterme.models import User, Post, Photo
 
 class PostForm(FlaskForm):
-    body = StringField('Post', validators=[DataRequired(), Length(1,144)])
-    submit = SubmitField('')
+    body = StringField('微博内容', validators=[DataRequired(), Length(1,144)])
+    submit = SubmitField('发布')
 
 
 class TagForm(FlaskForm):
-    tag = StringField('Add Tag (use space to separate)', validators=[Optional(), Length(0, 64)])
-    submit = SubmitField()
+    tag = StringField('添加标签（空格分隔）', validators=[Optional(), Length(0, 64)])
+    submit = SubmitField('添加')
 
 
 class CommentForm(FlaskForm):
     body = TextAreaField('', validators=[DataRequired()])
-    submit = SubmitField()
+    submit = SubmitField('发布')

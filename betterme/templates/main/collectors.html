@@ -2,21 +2,21 @@
 {% from 'bootstrap/pagination.html' import render_pagination %}
 {% from 'macros.html' import user_card with context %}
 
-{% block title %}Collectors{% endblock %}
+{% block title %}收藏用户{% endblock %}
 
 {% block content %}
     <div class="page-header">
         <div class="row">
             <div class="col-md-12">
                 <a class="btn btn-default btn-sm" href="{{ url_for('main.show_post', post_id=post.id) }}">
-                    <span class="oi oi-arrow-left" aria-hidden="true"></span> Return
+                    <span class="oi oi-arrow-left" aria-hidden="true"></span> 返回
                 </a>
             </div>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
-            <h3>{{ post.collectors|length }} Collectors</h3>
+            <h3>{{ post.collectors|length }} 位收藏用户</h3>
             {% for collect in collects %}
                 {{ user_card(user=collect.collector) }}
             {% endfor %}

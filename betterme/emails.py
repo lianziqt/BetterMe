@@ -21,7 +21,7 @@ def send_mail(subject, to, template, **kwargs):
     return thread
 
 def send_confirm_email(user, token, to=None):
-    send_mail(subject='Email Confirm', to = to or user.email, template='emails/confirm', user=user, token=token)
+    send_mail(subject='确认邮件', to = to or user.email, template='emails/confirm', user=user, token=token)
 
 def send_reset_password_email(user, token):
-    send_mail(subject='Password Reset', to=user.email, template='emails/reset_password', user=user, token=token)
+    send_mail(subject='更改密码', to=user.email, template='emails/reset_password', user=user, token=token)

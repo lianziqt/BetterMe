@@ -60,19 +60,19 @@
         <button data-id="{{ user.id }}"
                 data-href="{{ url_for('ajax.unfollow', username=user.username) }}"
                 class="{% if not current_user.is_follow(user) %}hide{% endif %} btn btn-dark btn-sm unfollow-btn">
-            Unfollow
+            取消关注
         </button>
         <button data-id="{{ user.id }}"
                 data-href="{{ url_for('ajax.follow', username=user.username) }}"
                 class="{% if current_user.is_follow(user) %}hide{% endif %} btn btn-primary btn-sm follow-btn">
-            Follow
+            关注
         </button>
         {% endif %}
     {% else %}
         <form class="inline" method="POST" action="{{ url_for('user.follow', username=user.username) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-outline-secondary btn-sm">
-                Follow
+                关注
             </button>
         </form>
     {% endif %}

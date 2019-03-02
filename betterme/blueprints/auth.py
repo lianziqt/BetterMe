@@ -4,8 +4,9 @@ from flask_login import login_user, logout_user, login_required, current_user, l
 
 from betterme.emails import send_confirm_email, send_reset_password_email
 from betterme.extensions import db
+from sqlalchemy.sql.expression import func
 from betterme.forms.auth import LoginForm, RegisterForm, ForgetPasswordForm, ResetPasswordForm
-from betterme.models import User
+from betterme.models import User, Photo
 from betterme.configs import Operations
 from betterme.utils import generate_token, validate_token, redirect_back
 auth_bp = Blueprint('auth', __name__)
@@ -17,6 +18,7 @@ def login():
         return redirect(url_for('main.index'))
 
     form = LoginForm()
+    photos = Photo.query.order_by(func.random()).limit(4)
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.lower()).first()
         if user is not None and user.check_password(form.password.data):
@@ -24,7 +26,7 @@ def login():
             flash('Login success.', 'info')
             return redirect_back()
         flash('Invalid email or password.', 'warning')
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/login.html', form=form, photos=photos)
 
 @auth_bp.route('/logout')
 @login_required
@@ -37,7 +39,8 @@ def logout():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
-    
+
+    photos = Photo.query.order_by(func.random()).limit(4)
     form = RegisterForm()
     if form.validate_on_submit():
         name = form.name.data
@@ -52,7 +55,7 @@ def register():
         send_confirm_email(user=user, token=token)
         flash('Confirm email sent, check your inbox.', 'info')
         return redirect(url_for('.login'))
-    return render_template('auth/register.html', form=form)
+    return render_template('auth/register.html', form=form, photos=photos)
 
 @auth_bp.route('/confirm/<token>')
 @login_required
@@ -61,10 +64,10 @@ def confirm(token):
         return rediect(url_for('main.index'))
 
     if validate_token(user=current_user, token=token, operation=Operations.CONFIRM):
-        flash('Account confirmed.', 'success')
+        flash('邮箱已验证', 'success')
         return redirect(url_for('main.index'))
     else:
-        flash('Invalid or expired token.', 'danger')
+        flash('验证连接非法或已过期', 'danger')
         return redirect(url_for('.resend_confirm_email'))
 
 @auth_bp.route('/resend-confirm-email')
@@ -74,7 +77,7 @@ def resend_confirm_email():
         return redirect(url_for('main.index'))
     token = generate_token(user=current_user, operation=Operations.CONFIRM)
     send_confirm_email(user=current_user, token=token)
-    flash('New email sent, check your inbox.', 'info')
+    flash('新的验证连接已发送，请检查邮箱', 'info')
     return redirect(url_for('main.index'))
 
 @auth_bp.route('forget-password', methods=['GET', 'POST'])
@@ -88,9 +91,9 @@ def forget_password():
         if user:
             token = generate_token(user=user, operation=Operations.RESET_PASSWORD)
             senf_reset_password_email(user=user, token=token)
-            flash('Password reset email sent, check your inbox.', 'info')
+            flash('验证连接已发送，请检查邮箱', 'info')
             return redirect(url_for('.login'))
-        flash('Invalid email.', 'warning')
+        flash('用户不存在', 'warning')
         return redirect(url_for('.forget_password'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -103,12 +106,12 @@ def reset_password(token):
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None:
-            flash('Invalid email.', 'warning')
+            flash('用户不存在', 'warning')
             return redirect(url_for('main.index'))
         elif validate_token(user=user, token=token, operation=Operations.RESET_PASSWORD, new_password=form.password.data):
-            flash('Password updated.', 'success')
+            flash('密码已修改', 'success')
             return redirect(url_for('.login'))
         else:
-            flash('Invalid or expired link.', 'danger')
+            flash('链接非法或已过期', 'danger')
             return redirect(url_for('.forget_password'))
     return render_template('auth/reset_password.html', form=form)
