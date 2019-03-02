@@ -38,7 +38,6 @@ def index():
 
 
 @main_bp.route('/explore')
-@permission_required('ADMINISTER')
 def explore():
     posts = Post.query.order_by(func.random()).limit(12) 
     return render_template('main/explore.html', posts=posts)

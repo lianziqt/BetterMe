@@ -9,7 +9,8 @@ from betterme.blueprints.main import main_bp
 from betterme.blueprints.user import user_bp
 from betterme.blueprints.auth import auth_bp
 from betterme.blueprints.ajax import ajax_bp
-from betterme.extensions import bootstrap, db, mail, moment, login_manager, dropzone, csrfprotect, avatars,whooshee
+from betterme.extensions import bootstrap, db, mail, moment, login_manager, dropzone, csrfprotect, avatars, \
+                                whooshee, toolbar
 from betterme.configs import config
 from betterme.models import User, Role, Post, Photo, Collect
 
@@ -42,7 +43,7 @@ def register_extensions(app):
     csrfprotect.init_app(app)
     avatars.init_app(app)
     whooshee.init_app(app)
-
+    toolbar.init_app(app)
 
 def register_bluprints(app):
     app.register_blueprint(main_bp)

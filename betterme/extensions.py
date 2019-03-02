@@ -9,6 +9,7 @@ from flask_dropzone import Dropzone
 from flask_wtf.csrf import CsrfProtect
 from flask_avatars import Avatars
 from flask_whooshee import Whooshee
+from flask_debugtoolbar import DebugToolbarExtension
 
 bootstrap = Bootstrap()
 moment = Moment()
@@ -19,6 +20,7 @@ dropzone = Dropzone()
 csrfprotect = CsrfProtect()
 avatars = Avatars()
 whooshee = Whooshee()
+toolbar = DebugToolbarExtension()
 
 @login_manager.user_loader
 def load_user(user_id):

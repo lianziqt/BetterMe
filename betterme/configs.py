@@ -15,6 +15,7 @@ else:
 
 class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', 'my secret string')
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
 
     POST_PER_PAGE = 24
     COMMENT_PER_PAGE = 15

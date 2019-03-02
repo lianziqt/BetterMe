@@ -114,5 +114,5 @@ migrations/
 whooshee/
 
 #picthure
-*.png
-*.jpg
+uploads/
+

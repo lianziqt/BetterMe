@@ -264,7 +264,7 @@ def delete_photos(**kwargs):
         user_path = os.path.join(
             current_app.config['UPLOAD_PATH'], current_user.name, filename)
         if os.path.exists(user_path):  # not every filename map a unique file
-            os.remove(path)
+            os.remove(user_path)
 
 
 class Collect(db.Model):
